@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>打地鼠</title>
+    <style>
+        #bg {
+            position: relative;
+            width: 750px;
+            height: 550px;
+            background: url("picture/bg.png");
+            background-repeat: no-repeat;
+            /* border: 1px solid red; */
+        }
+        #hammer {
+            position: absolute;
+            margin-top: -40px;
+            margin-left: -40px;
+            top: 0;
+            left: 0;
+            cursor: none;
+            user-select: none;
+            z-index: 999;
+            /* border: 1px solid red; */
+        }
+
+        div[id^="hollow"] {
+            width: 109px;
+            height: 109px;
+            overflow: hidden;
+            position: absolute;
+            /* border: 1px solid red; */
+        }
+        #hollow1 {
+            top: 150px;
+            left: 140px;
+        }
+        #hollow2 {
+            top: 150px;
+            left: 325px;
+        }#hollow3 {
+            top: 150px;
+            left: 525px;
+        }#hollow4 {
+            top: 240px;
+            left: 110px;
+        }#hollow5 {
+            top: 240px;
+            left:325px;
+        }#hollow6 {
+            top: 240px;
+            left: 525px;
+        }#hollow7 {
+            top: 340px;
+            left: 105px;
+        }
+        #hollow8 {
+            top: 345px;
+            left: 325px;
+        }#hollow9 {
+            top: 345px;
+            left: 550px;
+        }
+        div[id^="hollow"] img{
+            position: absolute;
+            top: 104px;
+            left: 0px;
+        }
+    </style>
+</head>
+<body>
+    <div id="bg">
+        <img src="picture/hammer1.png" id="hammer" alt="">
+
+        <div id = hollow1><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow2><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow3><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow4><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow5><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow6><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow7><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow8><img src="./picture/mouse1.png" alt=""></div>
+        <div id = hollow9><img src="./picture/mouse1.png" alt=""></div>
+
+    </div>
+
+    <script>
+        // 通过背景的样式将游戏场景插入
+        var bg = document.getElementById("bg");
+        var hammer = document.getElementById("hammer");
+
+        // 锤子打击变化
+        bg.onmousedown = function () {
+            // console.log("11");
+            hammer.src = "picture/hammer2.png";
+        }
+        // 锤子还原变化
+        bg.onmouseup = function () {
+            // console.log("22");
+            hammer.src = "picture/hammer1.png";
+        }
+        
+        // 锤子跟随鼠标
+        bg.onmousemove= function (e) {
+            // console.log(e.clientX + " " + e.clientY);
+            var x = e.clientX;
+            var y = e.clientY;
+            hammer.style.top = y +"px";
+            hammer.style.left = x +"px";
+        }
+
+        // picchange作为条件——用于启动打击停滞及防止二次触发
+        var picchange = null;
+
+        // 打击确认
+        bg.onclick = function (e) {
+            var x = e.clientX;
+            var y = e.clientY;        
+            //碰撞检测
+            var x1 = mouseAry[mouseID].offsetLeft + hollowAry[mouseID].offsetLeft;
+            var x2 = x1 + mouseAry[mouseID].offsetWidth;
+
+            var y1 = mouseAry[mouseID].offsetTop + hollowAry[mouseID].offsetTop;
+            var y2 = hollowAry[mouseID].offsetTop + hollowAry[mouseID].offsetHeight;
+            if( x > x1 && x < x2 && y > y1 && y < y2){
+                mouseAry[mouseID].src = "picture/mouse2.png";
+                console.log("点中"); 
+                if(picchange != false) {
+                    picchange = true;
+                    // console.log(picchange);
+                }
+            }
+            // console.log(picchange);
+        }
+        
+        // 此为前期单独试验
+        // var hollow1 = document.getElementById("hollow1");
+        // var mouse1 = hollow1.getElementsByTagName("img")[0];
+
+        // 老鼠洞集合及老鼠集合
+        var hollowAry = [];
+        var mouseAry = [];
+        for(var i = 0;i < 9; i++){
+            hollowAry[i] = document.getElementById("hollow" + (i + 1));
+            // 获取到老鼠
+            mouseAry[i] = hollowAry[i].getElementsByTagName("img")[0];
+        }
+        
+        // 老鼠运行目标坐标及循环初始化
+        var looptime = 20;
+        var EndTop = 104;
+        var middleTop = 0;
+        var waittime = 0;
+        var waitMaxTime = 600;
+        var nowTop = 104;
+        var showtime = 20
+        var disappeartime = 20
+        var mouseloop_up = null;
+        var mouseloop_Down = null;
+        
+        // 随机确认出现的老鼠
+        setInterval(function() {
+            mouseID = parseInt(Math.random()*9);
+            nowTop = 104;
+            waittime = 0;
+            mouseloop_up = setInterval (mouseShow,showtime)
+        },3000);
+
+        // 老鼠躲藏
+        function fun_mouseloop_Down() {
+            mouseloop_Down = setInterval (mousedisappear,disappeartime);
+            console.log("下落");
+        };
+
+        // 老鼠出现循环
+        function mouseShow() {
+            var shot_waittime = 0;
+            var shot_MaxWaitTime = 600;
+            var shot_looptime = 20;
+            var shot_changetime = 20;
+            var mouse_shotloop = function () {
+                // 被打击到之后产生的僵直
+                if (shot_waittime < shot_MaxWaitTime) {
+                    shot_waittime += shot_changetime;
+                    // console.log("bingo");
+                }
+                // 僵直时间到后进行躲藏
+                if (shot_waittime >= shot_MaxWaitTime) {
+                    clearInterval(mouseshotwait);
+                    fun_mouseloop_Down();
+                    picchange = false;
+                }
+            }
+
+            
+            // 此后为出现循环、等待及躲藏触发
+            if ( nowTop > middleTop) {
+                nowTop -= 6;
+            }
+            if(nowTop < middleTop) {
+                nowTop = middleTop;
+            }
+            if(nowTop == middleTop) {
+                if (waittime < waitMaxTime) {
+                    waittime += looptime;
+                }
+                if (waittime >= waitMaxTime) {
+                    clearInterval(mouseloop_up);
+                    fun_mouseloop_Down();
+                    // console.log("11");
+                }
+            }
+            mouseAry[mouseID].style.top = nowTop + "px";
+            // 将变化结果与实际坐标同步
+            
+            // 击打变化取消出现循环  开始僵直
+            if (picchange == true) {
+                clearInterval(mouseloop_up);
+                shot_waittime = 0;
+                var mouseshotwait = setInterval(mouse_shotloop,shot_looptime);
+                // console.log("bingo");
+            }
+        };
+
+
+
+        
+        // 躲藏
+        function mousedisappear() {
+            var shot_waittime = 0;
+            var shot_MaxWaitTime = 600;
+            var shot_looptime = 20;
+            var shot_changetime = 20;
+            // 击打僵直（僵直内容后触发的代码不一样，故未较整合
+            var mouse_shotloop = function () {
+                if (shot_waittime < shot_MaxWaitTime) {
+                    shot_waittime += shot_changetime;
+                    console.log("等待")
+                }
+                if (shot_waittime >= shot_MaxWaitTime) {
+                    clearInterval(mouseshotwait);
+                    picchange = false;
+                    fun_mouseloop_Down();
+                    console.log(picchange);
+                }
+            }
+            
+            // console.log("还动吗？")
+            // 躲藏
+            if ( nowTop < EndTop) {
+                nowTop += 8;
+            }
+            if (nowTop > EndTop) {
+                nowTop = EndTop;
+            }
+            if (nowTop == EndTop) {
+                clearInterval(mouseloop_Down);
+                picchange = null;
+                mouseAry[mouseID].src = "picture/mouse1.png";
+                // mouseloop_Down = null;
+            }
+            
+            mouseAry[mouseID].style.top = nowTop + "px";
+            
+            // 击打后触发僵直及停止躲藏
+            if (picchange == true) {
+                clearInterval(mouseloop_Down);
+                var shot_waittime = 0;
+                var mouseshotwait = setInterval(mouse_shotloop,shot_looptime);
+                console.log("开始等待")
+            }
+        };
+
+    </script>
+</body>
+</html>
